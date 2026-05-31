@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7X SENSI - Versão Surreal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-pure: #000000;
+            --bg-center: #120101;
+            --neon-red: #ff003c;
+            --neon-blue: #00d2ff;
+            --border-thick-blue: #0044cc;
+            --text-light: #ffffff;
+            --text-muted: #667599;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-pure);
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--text-light);
+        }
+
+        /* Fundo Espacial com Linhas e Bolinhas em Movimento */
+        #hacker-space-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Camadas Principais de Telas */
+        .app-view-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .view-active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Container de Login */
+        .login-matrix-box {
+            background: rgba(0, 0, 0, 0.95);
+            border: 6px solid var(--border-thick-blue);
+            border-radius: 24px;
+            box-shadow: 0 0 50px rgba(0, 68, 204, 0.6);
+            padding: 30px;
+            width: 92%;
+            max-width: 480px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Título Principal em Grafite Espesso Vermelho */
+        .graffiti-brand {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 3.8rem;
+            color: var(--neon-red);
+            text-shadow: 4px 4px 0px #000, 0 0 35px rgba(255, 0, 60, 0.8);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        /* Mensagem Formato Carta Elegante */
+        .letter-message-box {
+            background: #080101;
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            border-left: 5px solid var(--neon-red);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #ffcccc;
+            text-align: left;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            box-shadow: inset 0 0 15px rgba(255, 0, 60, 0.1);
+        }
+
+        /* Grupos de Inputs Estilizados */
+        .input-group-node {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .input-group-node label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group-node input {
+            width: 100%;
+            background: #030303;
+            border: 2px solid #222;
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-group-node input:focus {
+            outline: none;
+            border-color: var(--neon-red);
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.4);
+        }
+
+        /* Botão de Ação Cyber */
+        .btn-neon-action {
+            width: 100%;
+            background: linear-gradient(90deg, var(--neon-red) 0%, #4400cc 100%);
+            border: 2px solid #fff;
+            border-radius: 12px;
+            padding: 14px;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 0, 60, 0.4);
+            transition: all 0.2s;
+        }
+
+        .btn-neon-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px var(--neon-blue);
+        }
+
+        /* Cabeçalho Utilitário */
+        .system-top-bar {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .mini-clock-node {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--neon-blue);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-thick-blue);
+        }
+
+        .gear-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .gear-btn:hover { color: var(--neon-blue); }
+
+        /* Gaveta Secreta */
+        .credentials-vault {
+            position: absolute;
+            top: 55px;
+            right: 20px;
+            background: #020202;
+            border: 3px solid #7700ff;
+            border-radius: 12px;
+            padding: 15px;
+            width: 290px;
+            display: none;
+            z-index: 110;
+            box-shadow: 0 0 30px rgba(119, 0, 255, 0.7);
+        }
+
+        /* Layout do Gerador Principal */
+        .main-hub-wrapper {
+            width: 96%;
+            max-width: 1040px;
+            height: 92vh;
+            background: rgba(0, 0, 0, 0.98);
+            border: 6px solid var(--border-thick-blue);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Abas Superiores */
+        .hub-tabs-row {
+            display: flex;
+            background: #050505;
+            border-bottom: 3px solid var(--border-thick-blue);
+        }
+
+        .tab-trigger {
+            flex: 1;
+            padding: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-trigger.tab-active {
+            color: #fff;
+            background: #0f0202;
+            border-bottom: 4px solid var(--neon-red);
+            text-shadow: 0 0 12px var(--neon-red);
+        }
+
+        .window-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .window-content.window-active {
+            display: block;
+        }
+
+        /* Botões Selecionáveis Permanentes (Cores Travadas) */
+        .option-flex-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        .selector-btn {
+            flex: 1;
+            background: #0a0a0a;
+            border: 2px solid #222;
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        /* Estados ativos fixados */
+        .selector-btn.active-android {
+            background: #a4c639 !important;
+            color: #000 !important;
+            box-shadow: 0 0 15px #a4c639;
+            border-color: #fff;
+        }
+
+        .selector-btn.active-ios {
+            background: #ffffff !important;
+            color: #000 !important;
+            box-shadow: 0 0 15px #ffffff;
+            border-color: var(--neon-blue);
+        }
+
+        .selector-btn.active-preset {
+            background: var(--neon-red) !important;
+            color: #fff !important;
+            box-shadow: 0 0 15px var(--neon-red);
+            border-color: #fff;
+        }
+
+        .selector-btn.active-weapon {
+            background: var(--neon-blue) !important;
+            color: #000 !important;
+            box-shadow: 0 0 15px var(--neon-blue);
+            border-color: #fff;
+        }
+
+        /* Grades de Organização */
+        .form-grid-3x {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .card-slider-box {
+            background: #050505;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #1c1c1c;
+            margin-bottom: 15px;
+        }
+
+        .card-slider-box input[type="range"] {
+            width: 100%;
+            accent-color: var(--neon-red);
+            margin-top: 8px;
+        }
+
+        /* Painel Sensi Matrix Output */
+        .matrix-output-grid {
+            background: #010101;
+            border: 2px dashed var(--neon-blue);
+            border-radius: 14px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        @media(min-width: 650px) {
+            .matrix-output-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .matrix-node {
+            background: #080808;
+            border: 1px solid #1a1a1a;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .matrix-node p {
+            font-size: 0.75rem;
+            color: var(--neon-blue);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .matrix-node var {
+            font-style: normal;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #fff;
+        }
+
+        /* Chat Base Flex */
+        .chat-container-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-messages-scroll {
+            flex: 1;
+            background: #030303;
+            border: 1px solid #111;
+            border-radius: 12px;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .msg-bubble {
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 75%;
+            line-height: 1.4;
+        }
+
+        .msg-bubble.ai {
+            background: rgba(0, 210, 255, 0.08);
+            border-left: 4px solid var(--neon-blue);
+            align-self: flex-start;
+        }
+
+        .msg-bubble.user {
+            background: rgba(255, 0, 60, 0.08);
+            border-right: 4px solid var(--neon-red);
+            margin-left: auto;
+            text-align: right;
+        }
+
+        /* Mural de Feedbacks */
+        .feedback-wall {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comment-item {
+            background: #060606;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #111;
+        }
+
+        /* Overlay Buraco Negro Metamórfico */
+        .blackhole-overlay-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .blackhole-sphere {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #000000 30%, var(--neon-red) 65%, #001133 100%);
+            box-shadow: 0 0 50px var(--neon-red), inset 0 0 30px rgba(0,210,255,0.4);
+            animation: spaceDistorion 1.5s infinite ease-in-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .weapon-glyph {
+            font-size: 2.8rem;
+            animation: glyphSpin 0.8s infinite linear;
+        }
+
+        @keyframes spaceDistorion {
+            0%, 100% { transform: scale(1) rotate(0deg); border-radius: 50%; }
+            33% { transform: scale(1.15) rotate(120deg); border-radius: 38% 62% 40% 60% / 45% 35% 65% 55%; }
+            66% { transform: scale(0.9) rotate(240deg); border-radius: 65% 35% 55% 45% / 55% 60% 40% 45%; }
+        }
+
+        @keyframes glyphSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .app-footer {
+            text-align: center;
+            padding: 12px;
+            background: #020202;
+            border-top: 1px solid #111;
+            font-size: 0.85rem;
+        }
+
+        .app-footer a {
+            color: var(--neon-blue);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .hidden-node { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <canvas id="hacker-space-canvas"></canvas>
+
+    <div id="global-top-bar" class="system-top-bar hidden-node">
+        <div class="mini-clock-node" id="live-timer-node">00:00:00</div>
+        <button class="gear-btn" onclick="toggleCredentialsVaultView()">⚙️</button>
+        <div class="credentials-vault" id="panel-credentials-vault">
+            <h5 style="color:var(--neon-blue); font-family:'Orbitron'; margin-bottom:6px;">📦 CAIXA DE ENTREGA</h5>
+            <div id="vault-stream-data" style="font-size:0.8rem; font-family:monospace; color:#00ffcc; line-height:1.4;">
+                Aguardando autenticação...
+            </div>
+        </div>
+    </div>
+
+    <div id="view-layer-login" class="app-view-layer view-active">
+        <div class="login-matrix-box">
+            <div class="graffiti-brand">7X SENSI</div>
+            
+            <div class="letter-message-box">
+                <strong>[DIRETRIZ DE IA]</strong><br>
+                Bem-vindo ao melhor gerador de sensi 🔥. Conecte sua conta inserindo os dados requisitados abaixo para liberar o bypass do algoritmo.
+            </div>
+
+            <div class="input-group-node">
+                <label>Nome do Operador</label>
+                <input type="text" id="in-user-name" placeholder="Digite seu nome">
+            </div>
+            <div class="input-group-node">
+                <label>Número de Celular</label>
+                <input type="text" id="in-user-phone" placeholder="(00) 99999-9999">
+            </div>
+            <div class="input-group-node">
+                <label>Endereço de E-mail (Gmail)</label>
+                <input type="email" id="in-user-gmail" placeholder="exemplo@gmail.com">
+            </div>
+            <div class="input-group-node">
+                <label>Chave de Acesso</label>
+                <input type="password" id="in-user-key" placeholder="Senha fixa de validação">
+            </div>
+
+            <button class="btn-neon-action" onclick="processSystemLoginAuthentication()">ENTRAR NO SISTEMA</button>
+        </div>
+    </div>
+
+    <div id="view-layer-dashboard" class="app-view-layer">
+        <div class="main-hub-wrapper">
+            
+            <div class="hub-tabs-row">
+                <button id="tab-btn-gen" class="tab-trigger tab-active" onclick="switchHubActiveWindow('win-generator')">🎯 ALGORITMO GERADOR</button>
+                <button id="tab-btn-chat" class="tab-trigger" onclick="switchHubActiveWindow('win-chat')">🤖 IA CHATGPT CHAT</button>
+                <button id="tab-btn-feed" class="tab-trigger" onclick="switchHubActiveWindow('win-feedback')">💬 COMUNIDADE</button>
+            </div>
+
+            <div id="win-generator" class="window-content window-active">
+                
+                <div class="form-grid-3x">
+                    <div>
+                        <label>Plataforma Dispositivo</label>
+                        <div class="option-flex-container">
+                            <button id="btn-plat-android" class="selector-btn" onclick="setPlatformSelectionState('android')">ANDROID</button>
+                            <button id="btn-plat-ios" class="selector-btn" onclick="setPlatformSelectionState('ios')">iOS</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label>Nível da Sensibilidade</label>
+                        <div class="option-flex-container">
+                            <button id="btn-sens-low" class="selector-btn" onclick="setSensSelectionState('low')">BAIXA</button>
+                            <button id="btn-sens-med" class="selector-btn" onclick="setSensSelectionState('med')">MÉDIA</button>
+                            <button id="btn-sens-high" class="selector-btn" onclick="setSensSelectionState('high')">ALTA</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label>Estilo de Combate</label>
+                        <div class="option-flex-container">
+                            <button id="btn-weap-one" class="selector-btn" onclick="setWeaponSelectionState('one')">ONE TAP</button>
+                            <button id="btn-weap-smg" class="selector-btn" onclick="setWeaponSelectionState('smg')">SMG</button>
+                            <button id="btn-weap-ar" class="selector-btn" onclick="setWeaponSelectionState('ar')">AR</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid-3x">
+                    <div class="input-group-node">
+                        <label>Modelo do Celular</label>
+                        <input type="text" id="device-model-input" placeholder="Ex: Poco X5 Pro">
+                    </div>
+                    <div class="input-group-node">
+                        <label>Quantidade de RAM</label>
+                        <input type="text" id="device-ram-input" placeholder="Ex: 8 GB">
+                    </div>
+                    <div class="input-group-node">
+                        <label>Armazenamento Interno</label>
+                        <input type="text" id="device-storage-input" placeholder="Ex: 256 GB">
+                    </div>
+                </div>
+
+                <div class="card-slider-box">
+                    <label id="slider-dynamic-title" style="color:var(--neon-blue); font-size:0.8rem; font-weight:bold; font-family:'Orbitron';">SELECIONE O VALOR COMPLEMENTAR</label>
+                    <input type="range" id="slider-hardware-range" min="300" max="600" value="450" oninput="updateSliderOutputLabelValue(this.value)">
+                    <div id="slider-numeric-indicator" style="font-family:'Orbitron'; font-size:0.9rem; margin-top:5px; color:#fff;">450</div>
+                </div>
+
+                <div class="card-slider-box">
+                    <label style="color:var(--neon-blue); font-size:0.8rem; font-weight:bold; font-family:'Orbitron';">TAMANHO DO BOTÃO DE DISPARO (LIMITADO 20% A 40%)</label>
+                    <input type="range" id="slider-fire-button" min="20" max="40" value="30" oninput="document.getElementById('lbl-fire-value').innerText = this.value + '%'">
+                    <div id="lbl-fire-value" style="font-family:'Orbitron'; font-size:0.9rem; margin-top:5px; color:#fff;">30%</div>
+                </div>
+
+                <button class="btn-neon-action" style="margin-top:10px;" onclick="executeSensiCalibrationSequence()">⚡ GERAÇÃO MATRICIAL DE TAXA DE FRAME</button>
+
+                <div class="matrix-output-grid">
+                    <div class="matrix-node"><p>GERAL</p><var id="out-geral">-</var></div>
+                    <div class="matrix-node"><p>PONTO VERMELHO</p><var id="out-reddot">-</var></div>
+                    <div class="matrix-node"><p>MIRA 2X</p><var id="out-2x">-</var></div>
+                    <div class="matrix-node"><p>MIRA 4X</p><var id="out-4x">-</var></div>
+                </div>
+                <div id="calibration-verbose-feedback" style="text-align:center; color:var(--neon-blue); font-family:'Orbitron'; font-size:0.8rem; margin-top:15px; letter-spacing:1px;"></div>
+            </div>
+
+            <div id="win-chat" class="window-content">
+                <div class="chat-container-layout">
+                    <div class="chat-messages-scroll" id="chat-scroller-node">
+                        <div class="msg-bubble ai">Sua sensi foi gerada com base no seu dispositivo 📱🔥! Sou a IA Avançada Integrada. Peça para criar uma configuração ou solicite dicas de otimização de performance.</div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="chat-user-message-input" style="flex:1; background:#020202; border:2px solid #222; border-radius:8px; padding:12px; color:#fff;" placeholder="Digite seu comando para a IA...">
+                        <button class="btn-neon-action" style="width:110px; padding:0;" onclick="submitUserMessageToAiTerminal()">ENVIAR</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="win-feedback" class="window-content">
+                <div class="feedback-wall">
+                    <h4 style="color:var(--neon-blue); font-family:'Orbitron';">Depoimentos Recentes</h4>
+                    <div class="input-group-node">
+                        <label>Compartilhe sua experiência com o Gerador</label>
+                        <input type="text" id="new-user-comment-input" placeholder="Escreva aqui...">
+                    </div>
+                    <button class="btn-neon-action" style="width:140px; padding:10px;" onclick="addNewCommentToWallContainer()">POSTAR</button>
+                    <div id="comments-container-list" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                        <div class="comment-item"><strong>@Nobru:</strong> A sensibilidade de One Tap ficou impecável no Android. Perfeito! 🔥</div>
+                        <div class="comment-item"><strong>@Cerol:</strong> Configuração de ciclos para iPhone estabilizou muito a mira.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-footer">
+                DEVELOPED BY: <a href="https://www.instagram.com/cfss.matkus7" target="_blank">@cfss.matkus7</a>
+            </div>
+
+            <div class="blackhole-overlay-layer" id="blackhole-loading-screen">
+                <div class="blackhole-sphere">
+                    <div class="weapon-glyph" id="weapon-glyph-node">🔫</div>
+                </div>
+                <h3 style="color:#fff; font-family:'Orbitron'; margin-top:25px; letter-spacing:3px;" id="blackhole-status-label">SINCRONIZANDO...</h3>
+                <p style="color:var(--neon-blue); font-size:0.8rem; margin-top:4px;">Deformando e calculando dispersão vetorial</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- MOTOR CANVAS: ESPAÇO SIDERAL INTELIGENTE COM PONTOS VERMELHOS ---
+        const canvas = document.getElementById('hacker-space-canvas');
+        const ctx = canvas.getContext('2d');
+        let points = [];
+
+        function resizeSystemCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeSystemCanvas);
+        resizeSystemCanvas();
+
+        class SpaceNode {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 1.4;
+                this.vy = (Math.random() - 0.5) * 1.4;
+                this.size = Math.random() * 2.5 + 1;
+            }
+            step() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if(this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if(this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            render() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff003c'; // Bolinhas vermelhas em movimento
+                ctx.fill();
+            }
+        }
+
+        for(let i=0; i<65; i++) { points.push(new SpaceNode()); }
+
+        function runCanvasEngineLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for(let i=0; i<points.length; i++) {
+                points[i].step();
+                points[i].render();
+                for(let j=i+1; j<points.length; j++) {
+                    let d = Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y);
+                    if(d < 115) {
+                        ctx.beginPath();
+                        ctx.moveTo(points[i].x, points[i].y);
+                        ctx.lineTo(points[j].x, points[j].y);
+                        ctx.strokeStyle = `rgba(255, 0, 60, ${1 - (d/115)})`; // Linhas conectando as bolinhas
+                        ctx.lineWidth = 0.6;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(runCanvasEngineLoop);
+        }
+        runCanvasEngineLoop();
+
+        // --- RELÓGIO DIGITAL ---
+        setInterval(() => {
+            document.getElementById('live-timer-node').innerText = new Date().toLocaleTimeString('pt-BR');
+        }, 1000);
+
+        // --- CONTROLE DOS ESTADOS DE SELEÇÃO FIXADA (COLORIDOS) ---
+        let statePlatform = '';
+        let stateSens = '';
+        let stateWeapon = '';
+
+        function setPlatformSelectionState(choice) {
+            statePlatform = choice;
+            document.getElementById('btn-plat-android').className = "selector-btn";
+            document.getElementById('btn-plat-ios').className = "selector-btn";
+
+            const title = document.getElementById('slider-dynamic-title');
+            const slider = document.getElementById('slider-hardware-range');
+
+            if(choice === 'android') {
+                document.getElementById('btn-plat-android').classList.add('active-android');
+                title.innerText = "ESCOLHA A VALOR DE DPI DESEJADO (ANDROID)";
+                slider.min = "300";
+                slider.max = "600";
+            } else {
+                document.getElementById('btn-plat-ios').classList.add('active-ios');
+                title.innerText = "ESCOLHA O CICLO DE ATUALIZAÇÃO (1 A 100 - iOS)";
+                slider.min = "1";
+                slider.max = "100";
+            }
+            updateSliderOutputLabelValue(slider.value);
+        }
+
+        function setSensSelectionState(choice) {
+            stateSens = choice;
+            document.getElementById('btn-sens-low').className = "selector-btn";
+            document.getElementById('btn-sens-med').className = "selector-btn";
+            document.getElementById('btn-sens-high').className = "selector-btn";
+            document.getElementById(`btn-sens-${choice}`).classList.add('active-preset');
+        }
+
+        function setWeaponSelectionState(choice) {
+            stateWeapon = choice;
+            document.getElementById('btn-weap-one').className = "selector-btn";
+            document.getElementById('btn-weap-smg').className = "selector-btn";
+            document.getElementById('btn-weap-ar').className = "selector-btn";
+            document.getElementById(`btn-weap-${choice}`).classList.add('active-weapon');
+        }
+
+        function updateSliderOutputLabelValue(val) {
+            document.getElementById('slider-numeric-indicator').innerText = val;
+        }
+
+        function toggleCredentialsVaultView() {
+            const vault = document.getElementById('panel-credentials-vault');
+            vault.style.display = vault.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // --- SISTEMA DE LOGIN INTEGRADO SEM TRAVAS ---
+        function processSystemLoginAuthentication() {
+            const name = document.getElementById('in-user-name').value.trim();
+            const phone = document.getElementById('in-user-phone').value.trim();
+            const gmail = document.getElementById('in-user-gmail').value.trim();
+            const key = document.getElementById('in-user-key').value.trim();
+
+            if(!name || !phone || !gmail || !key) {
+                alert("Erro crítico: Preencha todos os campos cadastrais para prosseguir.");
+                return;
+            }
+
+            // Exibe as credenciais na engrenagem superior
+            document.getElementById('vault-stream-data').innerHTML = `<strong>Gmail:</strong> ${gmail}<br><strong>Senha:</strong> ${key}<br><strong>User:</strong> ${name}`;
+
+            // Efetua a transição de telas imediata
+            document.getElementById('view-layer-login').classList.remove('view-active');
+            document.getElementById('view-layer-dashboard').classList.add('view-active');
+            document.getElementById('global-top-bar').classList.remove('hidden-node');
+        }
+
+        // --- SELEÇÃO DE ABAS INTERNAS ---
+        function switchHubActiveWindow(targetWindowId) {
+            document.querySelectorAll('.tab-trigger').forEach(t => t.classList.remove('tab-active'));
+            document.querySelectorAll('.window-content').forEach(w => w.classList.remove('window-active'));
+
+            event.target.classList.add('tab-active');
+            document.getElementById(targetWindowId).classList.add('window-active');
+        }
+
+        // --- SISTEMA DE GERAÇÃO: BURACO NEGRO DISTORCIDO COM ARMAS ---
+        const weaponsArray = ["🔫", "⚔️", "🏹", "💣", "🧨"];
+
+        function executeSensiCalibrationSequence() {
+            const model = document.getElementById('device-model-input').value.trim();
+            const ram = document.getElementById('device-ram-input').value.trim();
+            const storage = document.getElementById('device-storage-input').value.trim();
+
+            if(!statePlatform || !stateSens || !stateWeapon || !model || !ram || !storage) {
+                alert("Erro: Certifique-se de preencher Modelo, RAM, Armazenamento e selecionar todas as opções coloridas.");
+                return;
+            }
+
+            const loader = document.getElementById('blackhole-loading-screen');
+            const glyph = document.getElementById('weapon-glyph-node');
+            loader.style.display = 'flex';
+
+            let timerLeft = 5;
+            document.getElementById('blackhole-status-label').innerText = `DISSOLVENDO ALGORITMO... (${timerLeft}s)`;
+
+            const weaponInterval = setInterval(() => {
+                glyph.innerText = weaponsArray[Math.floor(Math.random() * weaponsArray.length)];
+            }, 350);
+
+            const countdownInterval = setInterval(() => {
+                timerLeft--;
+                if(timerLeft > 0) {
+                    document.getElementById('blackhole-status-label').innerText = `CALIBRANDO MATRIZ... (${timerLeft}s)`;
+                } else {
+                    clearInterval(countdownInterval);
+                    clearInterval(weaponInterval);
+                    loader.style.display = 'none';
+                    renderFinalCalculatedSensi(model);
+                }
+            }, 1000);
+        }
+
+        function renderFinalCalculatedSensi(deviceModel) {
+            const getRandomValue = () => Math.floor(Math.random() * 101) + 100;
+
+            document.getElementById('out-geral').innerText = getRandomValue();
+            document.getElementById('out-reddot').innerText = getRandomValue();
+            document.getElementById('out-2x').innerText = getRandomValue();
+            document.getElementById('out-4x').innerText = getRandomValue();
+
+            document.getElementById('calibration-verbose-feedback').innerText = `Sensibilidade otimizada com sucesso para o dispositivo: ${deviceModel}`;
+        }
+
+        // --- CHAT DA INTELIGÊNCIA ARTIFICIAL ---
+        function submitUserMessageToAiTerminal() {
+            const inputField = document.getElementById('chat-user-message-input');
+            const userText = inputField.value.trim();
+            if(!userText) return;
+
+            const chatScroller = document.getElementById('chat-scroller-node');
+
+            const userBubble = document.createElement('div');
+            userBubble.className = 'msg-bubble user';
+            userBubble.innerText = userText;
+            chatScroller.appendChild(userBubble);
+
+            inputField.value = '';
+
+            setTimeout(() => {
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'msg-bubble ai';
+
+                if(userText.toLowerCase().includes('sensi') || userText.toLowerCase().includes('criar')) {
+                    aiBubble.innerText = `Sensibilidade gerada com sucesso! Tente usar: Geral: 142, Red Dot: 195, Mira 2x: 174, Mira 4x: 160. Mantenha a puxada firme sem tremer! 🚀🎯`;
+                } else if(userText.toLowerCase().includes('otimizar') || userText.toLowerCase().includes('dica')) {
+                    aiBubble.innerText = `Dica de Otimização: Vá em configurações do desenvolvedor no aparelho, reduza as Escalas de Animação para 0.0x e ative o 'Forçar 4x MSAA' para suavizar a renderização vertical de frames!`;
+                } else {
+                    aiBubble.innerText = `Entendido. Processando sua solicitação sobre "${userText}" para otimizar ao máximo o seu desempenho nos servidores.`;
+                }
+
+                chatScroller.appendChild(aiBubble);
+                chatScroller.scrollTop = chatScroller.scrollHeight;
+            }, 600);
+        }
+
+        // --- ADICIONAR COMENTÁRIOS NO MURAL ---
+        function addNewCommentToWallContainer() {
+            const commentInput = document.getElementById('new-user-comment-input');
+            const text = commentInput.value.trim();
+            if(!text) return;
+
+            const listContainer = document.getElementById('comments-container-list');
+            const commentNode = document.createElement('div');
+            commentNode.className = 'comment-item';
+            commentNode.innerHTML = `<strong>@Operador_Anonimo:</strong> ${text}`;
+
+            listContainer.insertBefore(commentNode, listContainer.firstChild);
+            commentInput.value = '';
+        }
+    </script>
+</body>
+</html>
